@@ -967,7 +967,9 @@ describe('FocusModeMainComponent - sync with tracking (issue #6009)', () => {
       component.startSession();
 
       expect(mockStore.dispatch).toHaveBeenCalledWith(
-        actions.startFocusSession({ duration: 1500000 }),
+        actions.startFocusSession({
+          duration: 1500000,
+        }),
       );
     });
   });

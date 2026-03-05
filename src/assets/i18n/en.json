@@ -104,7 +104,14 @@
         "CALDAV_RESOURCE": "The name of the CalDAV resource (the calendar)",
         "CALDAV_URL": "CalDAV URL (the base URL)",
         "CALDAV_USER": "Your CalDAV username",
-        "IS_TRANSITION_ISSUES_ENABLED": "Automatically complete CalDAV tasks on task completion"
+        "TWO_WAY_SYNC_SECTION": "Two-Way Sync (experimental)",
+        "TWO_WAY_SYNC_STATUS": "Status sync direction",
+        "TWO_WAY_SYNC_TITLE": "Title sync direction",
+        "TWO_WAY_SYNC_OFF": "Off",
+        "TWO_WAY_SYNC_PULL_ONLY": "Pull only (read from CalDAV)",
+        "TWO_WAY_SYNC_PUSH_ONLY": "Push only (write to CalDAV)",
+        "TWO_WAY_SYNC_BOTH": "Both (bidirectional)",
+        "TWO_WAY_SYNC_NOTES": "Notes / Description sync direction"
       },
       "FORM_SECTION": {
         "HELP": "<p>Here you can configure Super Productivity to list uncompleted CalDAV tasks for a specific project in the task creation panel in the daily planning view. They will be listed as suggestions and will provide a link to the task as well as more information about it.</p> <p>In addition, you can automatically add and sync all uncompleted tasks to your task backlog.</p><p>To make it work for Nextcloud in the webapp, you may need to allow \"https://app.super-productivity.com\" in the Nextcloud app <a href='https://apps.nextcloud.com/apps/webapppassword'>webapppassword<a>.</p>"
@@ -122,14 +129,47 @@
         "ISSUE_NOT_FOUND": "CalDAV: Task \"{{issueId}}\" seems to be deleted on server."
       }
     },
+    "NEXTCLOUD_DECK": {
+      "FORM": {
+        "BASE_URL": "Nextcloud Base URL",
+        "USERNAME": "Your Nextcloud username",
+        "PASSWORD": "Your Nextcloud app password",
+        "FILTER_BY_ASSIGNEE": "Only import cards assigned to me",
+        "IS_TRANSITION_ISSUES_ENABLED": "Sync completion status and title back to Nextcloud Deck",
+        "POLL_INTERVAL_MINUTES": "Poll interval (minutes)",
+        "TITLE_TEMPLATE": "Task title template",
+        "TITLE_TEMPLATE_DESCRIPTION": "Variables: {CARD_TITLE}, {BOARD}, {COLUMN}, {ID}, {LABELS}. Example: [{BOARD}: {COLUMN}] {CARD_TITLE}. Leave empty for card title only."
+      },
+      "FORM_SECTION": {
+        "HELP": "Configure your Nextcloud Deck integration to import cards as tasks. Use an app password for authentication."
+      },
+      "ISSUE_CONTENT": {
+        "DECK_DESCRIPTION": "Deck Description",
+        "STACK": "Stack",
+        "ASSIGNED_USERS": "Assigned Users",
+        "LABELS": "Labels"
+      },
+      "S": {
+        "BOARD_NOT_FOUND": "Nextcloud Deck: Board not found",
+        "CARD_NOT_FOUND": "Nextcloud Deck: Card \"{{issueId}}\" seems to be deleted on server.",
+        "ERR_CREDENTIALS_MISSING": "Enter Nextcloud URL, username, and password first.",
+        "ERR_LOAD_BOARDS": "Failed to load Deck boards. Check your credentials."
+      }
+    },
     "CALENDARS": {
       "BANNER": {
         "ADD_AS_TASK": "Add as Task",
         "SHOW_TASK": "Show Task",
         "TXT": "<strong>{{title}}</strong> starts at <strong>{{start}}</strong>!",
-        "TXT_MULTIPLE": "<strong>{{title}}</strong> starts at <strong>{{start}}</strong>!<br> (and {{nrOfOtherBanners}} other events are due)",
+        "TXT_MULTIPLE": {
+          "ONE": "<strong>{{title}}</strong> starts at <strong>{{start}}</strong>!<br> (and {{nrOfOtherBanners}} other event is due)",
+          "OTHER": "<strong>{{title}}</strong> starts at <strong>{{start}}</strong>!<br> (and {{nrOfOtherBanners}} other events are due)"
+        },
         "TXT_PAST": "<strong>{{title}}</strong> started at <strong>{{start}}</strong>!",
-        "TXT_PAST_MULTIPLE": "<strong>{{title}}</strong> started at <strong>{{start}}</strong>!<br> (and {{nrOfOtherBanners}} other events are due)"
+        "TXT_PAST_MULTIPLE": {
+          "ONE": "<strong>{{title}}</strong> started at <strong>{{start}}</strong>!<br> (and {{nrOfOtherBanners}} other event is due)",
+          "OTHER": "<strong>{{title}}</strong> started at <strong>{{start}}</strong>!<br> (and {{nrOfOtherBanners}} other events are due)"
+        }
       },
       "EVENT_STRINGS": {
         "EVENTS_STR": "events",
@@ -217,6 +257,7 @@
       "PREP_SIT_UPRIGHT": "Sit (or stand) upright",
       "PREP_STRETCH": "Enjoy some mild stretching",
       "REMOVE_TIME_MINUTE": "Remove 1 minute",
+      "RESET_CYCLES": "Reset session counter",
       "RESUME_BREAK": "Resume break",
       "RESUME_SESSION": "Resume session",
       "SELECT_MODE": "Choose your focus mode",
@@ -237,8 +278,8 @@
     "GITEA": {
       "FORM": {
         "HOST": "Host (e.g. https://try.gitea.io)",
-        "REPO_FULL_NAME": "Username or Organization name/project",
-        "REPO_FULL_NAME_DESCRIPTION": "Can be found as part of the URL when viewing the project in a web browser.",
+        "REPO_FULL_NAME": "Username or Organization name/repository",
+        "REPO_FULL_NAME_DESCRIPTION": "Can be found as part of the URL when viewing the repository in a web browser.",
         "SCOPE": "Scope",
         "SCOPE_ALL": "All",
         "SCOPE_ASSIGNED": "Assigned to me",
@@ -257,35 +298,6 @@
         "STATUS": "Status",
         "SUMMARY": "Summary",
         "WRITE_A_COMMENT": "Write a comment"
-      }
-    },
-    "GITHUB": {
-      "FORM": {
-        "FILTER_USER": "Username (e.g. to filter out changes by yourself)",
-        "INVALID_TOKEN_MESSAGE": "Not a valid GitHub token. It must start with \"ghp_\".",
-        "IS_ASSIGNEE_FILTER": "Only import issues assigned to me to backlog",
-        "REPO": "username/repositoryName",
-        "TOKEN": "Access Token"
-      },
-      "FORM_SECTION": {
-        "HELP": "<p>Here you can configure Super Productivity to list open GitHub issues for a specific repository in the task creation panel in the daily planning view. They will be listed as suggestions and will provide a link to the issue as well as more information about it.</p> <p>In addition, you can automatically import all open issues.</p><p>To get by usage limits and to access you can provide a an access token. <a href='https://docs.github.com/en/free-pro-team@latest/developers/apps/scopes-for-oauth-apps'>More info about its scopes can be found here</a>."
-      },
-      "ISSUE_CONTENT": {
-        "ASSIGNEE": "Assignee",
-        "AT": "at",
-        "DESCRIPTION": "Description",
-        "LABELS": "Labels",
-        "LAST_COMMENT": "Last comment",
-        "LOAD_ALL_COMMENTS": "Load all {{nr}} comments",
-        "LOAD_DESCRIPTION_AND_ALL_COMMENTS": "Load description and all comments",
-        "MARK_AS_CHECKED": "Mark updates as checked",
-        "STATUS": "Status",
-        "SUMMARY": "Summary",
-        "WRITE_A_COMMENT": "Write a comment"
-      },
-      "S": {
-        "CONFIG_ERROR": "GitHub: Error while mapping data. Is your repository name correct?",
-        "ERR_UNKNOWN": "GitHub: Unknown error {{statusCode}} {{errorMsg}}. API rate limit exceeded?"
       }
     },
     "GITLAB": {
@@ -369,17 +381,38 @@
         "VERSION": "Version",
         "WORKLOG": "Worklog"
       },
+      "TWO_WAY_SYNC": {
+        "SECTION": "Two-Way Sync (experimental)",
+        "OFF": "Off",
+        "PULL_ONLY": "Pull only",
+        "PUSH_ONLY": "Push only",
+        "BOTH": "Both (bidirectional)",
+        "STATUS": "Status sync direction",
+        "TITLE": "Title sync direction",
+        "NOTES": "Notes / Description sync direction",
+        "AUTO_CREATE_ISSUES": "Auto-create issues for new tasks",
+        "AUTO_CREATE_ISSUES_DESCRIPTION": "Automatically creates an issue when you add a new top-level task to the default project. Requires a default project to be set."
+      },
       "S": {
         "ERR_GENERIC": "{{issueProviderName}} Error: {{errTxt}}",
         "ERR_NETWORK": "{{issueProviderName}}: Request failed because of a client side network error",
         "ERR_NOT_CONFIGURED": "{{issueProviderName}}: Not properly configured",
+        "TWO_WAY_SYNC_PUSH_FAILED": "Two-way sync: Insufficient permissions to update issue. Check your credentials.",
         "IMPORTED_MULTIPLE_ISSUES": "{{issueProviderName}}: Imported {{nr}} new {{issuesStr}}",
         "IMPORTED_SINGLE_ISSUE": "{{issueProviderName}}: Imported {{issueStr}} \"{{issueTitle}}\"",
         "ISSUE_NO_UPDATE_REQUIRED": "{{issueProviderName}}: No update required",
         "ISSUE_UPDATE_MULTIPLE": "{{issueProviderName}}: Updated data for {{nr}} {{issuesStr}}",
         "ISSUE_UPDATE_SINGLE": "{{issueProviderName}}: Updated data for \"{{issueTitle}}\"",
         "POLLING_BACKLOG": "{{issueProviderName}}: Polling for new {{issuesStr}}",
-        "POLLING_CHANGES": "{{issueProviderName}}: Polling Changes for {{issuesStr}}"
+        "POLLING_CHANGES": "{{issueProviderName}}: Polling Changes for {{issuesStr}}",
+        "CONNECTION_SUCCESS": "Connection works!",
+        "CONNECTION_FAILED": "Connection failed",
+        "AUTO_CREATE_FAILED": "Failed to auto-create issue",
+        "PLUGIN_NOT_INSTALLED": "Required plugin \"{{pluginName}}\" is not installed."
+      },
+      "DIALOG": {
+        "ADVANCED_CONFIG": "Advanced Config",
+        "DELETE_CONFIRM": "Are you sure you want to delete this issue provider? Deleting it means that <strong>all previously imported issue tasks will loose their reference</strong>. This cannot be undone!"
       }
     },
     "ISSUE_PANEL": {
@@ -852,7 +885,10 @@
       "COUNTDOWN_BANNER": {
         "START_NOW": "Start now",
         "TXT": "<strong>{{title}}</strong> starts at <strong>{{start}}</strong>!",
-        "TXT_MULTIPLE": "<strong>{{title}}</strong> starts at <strong>{{start}}</strong>!<br> (and {{nrOfOtherBanners}} other tasks are due)"
+        "TXT_MULTIPLE": {
+          "ONE": "<strong>{{title}}</strong> starts at <strong>{{start}}</strong>!<br> (and {{nrOfOtherBanners}} other task is due)",
+          "OTHER": "<strong>{{title}}</strong> starts at <strong>{{start}}</strong>!<br> (and {{nrOfOtherBanners}} other tasks are due)"
+        }
       },
       "S_ACTIVE_TASK_DUE": "The task you are currently working on is now due!<br/> ({{title}})",
       "S_REMINDER_ERR": "Error for reminder interface"
@@ -982,24 +1018,39 @@
         "MESSAGE": "The sync server contains encrypted data, but no encryption password is configured on this device. Please enter your encryption password to decrypt and sync your data.",
         "PASSWORD_LABEL": "Encryption Password",
         "BTN_SAVE_AND_SYNC": "Save & Sync",
-        "FORCE_OVERWRITE_INFO": "If you don’t know the old password, you can overwrite the server with your local data and a new password.",
+        "FORCE_OVERWRITE_INFO": "If you prefer to keep your local data, you can overwrite the server instead.",
         "FORCE_OVERWRITE_TITLE": "Overwrite Server Data?",
-        "FORCE_OVERWRITE_CONFIRM": "This will <strong>delete all data on the server</strong> and upload your local data with the new password. Unsynced local changes may be lost. Continue?",
-        "BTN_FORCE_OVERWRITE": "Force Overwrite Server"
+        "FORCE_OVERWRITE_CONFIRM": "This will <strong>delete all data on the server</strong> and upload your local data encrypted with this password. Continue?",
+        "BTN_FORCE_OVERWRITE": "Use Local Data"
       },
       "D_FRESH_CLIENT_CONFIRM": {
-        "MESSAGE": "This appears to be a fresh installation. Remote data with {{count}} changes was found. Do you want to download and apply this data?",
+        "MESSAGE": "This appears to be a fresh installation. Remote data with {{count}} changes was found. Do you want to download and overwrite your local data with it?",
         "OK": "Download Remote Data",
         "TITLE": "Initial Sync"
       },
       "D_SYNC_IMPORT_CONFLICT": {
         "TITLE": "Sync Conflict Detected",
-        "MESSAGE": "Your local data was imported/restored, but the server has {{filteredOpCount}} changes from other devices.",
-        "EXPLANATION": "These changes were made without knowledge of your import and cannot be automatically merged.",
+        "MSG_INCOMING": "Your data was fully replaced on another device. You have {{filteredOpCount}} local changes that may not carry over.",
+        "MSG_INCOMING_NO_OPS": "Your data was fully replaced on another device. This device will sync to the new state.",
+        "MSG_LOCAL_FILTERS": "Your local data was imported/restored, but the server has {{filteredOpCount}} changes from other devices that cannot be automatically merged.",
         "IMPORT_DATE": "Import date",
-        "FILTERED_CHANGES": "Filtered changes",
+        "FILTERED_CHANGES": "Affected changes",
         "USE_LOCAL": "Use My Data",
-        "USE_REMOTE": "Use Server Data"
+        "USE_REMOTE": "Use Server Data",
+        "RECOMMEND_SERVER": "Recommended: Accept the server data to stay in sync with the other device.",
+        "REASON_PASSWORD_CHANGED": "Reason: The encryption password was changed on another device.",
+        "REASON_FILE_IMPORT": "Reason: A data file was imported on another device.",
+        "REASON_BACKUP_RESTORE": "Reason: A backup was restored on another device.",
+        "REASON_FORCE_UPLOAD": "Reason: Another device force-uploaded its local data.",
+        "REASON_SERVER_MIGRATION": "Reason: Data was migrated to a new sync server.",
+        "REASON_REPAIR": "Reason: An automatic data repair was performed.",
+        "REASON_UNKNOWN": "Reason: A full state replacement was performed."
+      },
+      "D_SERVER_MIGRATION_CONFIRM": {
+        "TITLE": "Server Already Has Data",
+        "MESSAGE": "This sync server already contains data. Would you like to upload your local data to merge with it? If you skip this, some of your local changes may not sync.",
+        "CONFIRM": "Upload Local Data",
+        "SKIP": "Skip"
       },
       "D_LOCAL_DATA_REPLACE_CONFIRM": {
         "MESSAGE": "You have {{count}} unsynced local changes that will be replaced by remote data. Do you want to continue?",
@@ -1008,11 +1059,12 @@
       "D_INCOMPLETE_SYNC": {
         "BTN_CLOSE_APP": "Close App",
         "BTN_DOWNLOAD_BACKUP": "Download Local Backup",
+        "BTN_FORCE_DOWNLOAD": "Force Download Remote",
         "BTN_FORCE_UPLOAD": "Force Upload Local",
+        "INCOHERENT_P1": "The date of your remote data is from the future",
+        "INCOHERENT_P2": "You should check the time configured on your systems!",
         "P1": "The remote sync data is incoherent!",
         "P2": "Affected model:",
-        "T1": "Last sync was incomplete!",
-        "T2": "Your archive data was not properly uploaded during last sync:",
         "T3": "You have 2 Options:",
         "T4": "1. Go to your other device and complete the sync there.",
         "T5": "2. Or you can overwrite the remote data with your local one. All remote changes will\n    be lost!",
@@ -1110,7 +1162,13 @@
           "ENABLE_ENCRYPTION_SUCCESS": "Encryption enabled successfully",
           "ENABLE_ENCRYPTION_NOT_READY": "Sync is not enabled or configured.",
           "ENABLE_ENCRYPTION_SUPERSYNC_ONLY": "This feature is only available for SuperSync.",
-          "ENABLE_ENCRYPTION_PASSWORD_REQUIRED": "Please enter an encryption password first."
+          "ENABLE_ENCRYPTION_PASSWORD_REQUIRED": "Please enter an encryption password first.",
+          "ENCRYPTION_ENCOURAGED": "Encryption is required for SuperSync. Please enable encryption to protect your data.",
+          "ENCRYPTION_SETUP_INTRO": "<strong>SuperSync password-encrypts your data before it leaves your device</strong>, making misuse or leaks of your private data almost impossible.",
+          "SETUP_ENCRYPTION_TITLE": "SuperSync: Set Password",
+          "SETUP_ENCRYPTION_PASSWORD_WARNING": "Use the same password on all devices. A forgotten password can be reset by overwriting remote data.",
+          "SETUP_ENCRYPTION_BTN": "Set Password",
+          "SETUP_DISABLE_SUPERSYNC_BTN": "Disable SuperSync"
         },
         "IMPORT_ENCRYPTION_WARNING": {
           "TITLE": "Encryption Settings Will Change",
@@ -1218,6 +1276,7 @@
         "DECRYPTION_FAILED": "Failed to decrypt synced data. Please check your encryption password.",
         "ENCRYPTION_PASSWORD_REQUIRED": "Encrypted data received but no encryption password is configured. Please set your encryption password in sync settings.",
         "ENCRYPTION_DISABLED_ON_OTHER_DEVICE": "Encryption was disabled on another device. Your sync settings have been updated.",
+        "ENCRYPTION_REQUIRED_FOR_SUPERSYNC": "Encryption is required for SuperSync. Please set an encryption password to continue syncing.",
         "WEB_CRYPTO_NOT_AVAILABLE": "Encryption is not available on this device. On Android, encryption requires a secure context (HTTPS) which is not available. Please disable encryption in sync settings or sync from a desktop web browser.",
         "PERSIST_FAILED": "Failed to save changes. State may be inconsistent - please reload.",
         "DEFERRED_ACTION_FAILED": "Some changes made during sync could not be saved. Please reload to recover.",
@@ -1247,7 +1306,11 @@
         "FINISH_DAY_SYNC_ERROR": "Sync error while finishing day. Please try again.",
         "SERVER_MIGRATION_VALIDATION_FAILED": "Could not migrate data to server - local data validation failed. Please try importing a backup.",
         "MIGRATION_FAILED": "Some sync data could not be migrated and was skipped. This may indicate data corruption or a bug.",
-        "VECTOR_CLOCK_LIMIT_REACHED": "Sync has tracked {{originalSize}} devices/browsers, exceeding the limit of {{maxSize}}. Inactive device entries were pruned. Consider a sync reset if you experience issues."
+        "VECTOR_CLOCK_LIMIT_REACHED": "Sync has tracked {{originalSize}} devices/browsers, exceeding the limit of {{maxSize}}. Inactive device entries were pruned. Consider a sync reset if you experience issues.",
+        "ENABLE_ENCRYPTION_FAILED": "Failed to enable encryption: {{message}}",
+        "DISABLE_ENCRYPTION_FAILED": "Failed to disable encryption: {{message}}",
+        "CHANGE_PASSWORD_FAILED": "Failed to change password: {{message}}",
+        "OVERWRITE_SERVER_FAILED": "Failed to overwrite server data: {{message}}"
       },
       "D_DATA_REPAIRED": {
         "TITLE": "Data Repair Executed",
@@ -1535,7 +1598,7 @@
       },
       "D_CONFIRM_UPDATE_INSTANCES": {
         "CANCEL": "Only future tasks",
-        "MSG": "There are {{tasksNr}} instances created for this recurring task. Do you want to update all of them with the new defaults or just future tasks?",
+        "MSG": "There are {{tasksNr}} instances created for this recurring task. Do you want to update all of them with the new defaults or only update future tasks?",
         "OK": "Update all instances"
       },
       "D_DELETE_INSTANCE": {
@@ -1547,11 +1610,11 @@
         "ADVANCED_CFG": "Advanced configuration",
         "EDIT": "Edit Recurring Task Config",
         "HEATMAP_LABEL": "Activity",
-        "HELP1": "Recurring tasks are meant for daily chores, e.g. \"Organization\", \"Daily Meeting\", \"Code Review\", \"Checking emails\" or similar tasks which are likely to occur again and again.",
-        "HELP2": "Once configured, a recurring task will be recreated on every day selected below as soon as you open your project and will be automatically marked as completed at the end of the day. They will be handled as different instances. So you can freely add subtasks etc.",
+        "HELP1": "Recurring tasks are for repeating tasks, e.g. 'Organization', 'Daily Meeting', 'Code Review', 'Check Emails', or similar tasks that are likely to occur again and again.",
+        "HELP2": "Once configured, a recurring task will be recreated on every day selected below as soon as you open your project. Each occurance will be handled as a different instance. So you can freely make modifications to each task, such as adding subtasks.",
         "HELP3": "Tasks imported from Jira or Git Issues cannot be recurring.",
-        "HELP4": "The 'Order' field refers to the creation order recurring tasks. It is only in effect for recurring tasks that are created at the same time. A lower value means a task will be higher up the list; a higher number means that it will be further down. A value greater than 0 means items are created at the bottom of normal tasks.",
-        "TAG_LABEL": "Tags to add"
+        "HELP4": "The 'Order' field refers to the creation order for recurring tasks. It only affects recurring tasks created at the same time. A lower value means a task will created higher up the list; a higher number means it will be further down. A value greater than 0 means tasks are created below normal tasks.",
+        "TAG_LABEL": "Tags"
       },
       "F": {
         "C_DAY": "Day",
@@ -1806,13 +1869,17 @@
     "NONE": "None",
     "OK": "Ok",
     "OVERDUE": "Overdue",
+    "PASSWORD_STRENGTH_FAIR": "Fair",
+    "PASSWORD_STRENGTH_STRONG": "Strong",
+    "PASSWORD_STRENGTH_WEAK": "Weak",
+    "PROCESSING": "Processing",
     "REMOVE": "Remove",
     "SAVE": "Save",
     "SHARE": "Share",
     "SUBMIT": "Submit",
     "TITLE": "Title",
+    "TOGGLE_PASSWORD_VISIBILITY": "Toggle password visibility",
     "TODAY_TAG_TITLE": "Today",
-    "TRACKING_INTERVAL_DESCRIPTION": "Track time using this interval in milliseconds. You may want to increase this to reduce disk writes. See GitHub issue #2355.",
     "UNDO": "Undo",
     "WITHOUT_PROJECT": "Without Project",
     "YESTERDAY": "Yesterday"
@@ -1983,6 +2050,8 @@
       "RU": "Русский",
       "SK": "Slovak",
       "SV": "Svenska",
+      "RO": "Română",
+      "RO_MD": "Română (Moldova)",
       "TIME_LOCALE": "Datetime format locale",
       "TIME_LOCALE_AUTO": "System default",
       "TIME_LOCALE_DE_DE": "German: 24-hour, DD.MM.YYYY",
@@ -2001,6 +2070,8 @@
       "TIME_LOCALE_CS_CZ": "Czech: 24-hour, DD. MM. YYYY",
       "TIME_LOCALE_SK_SK": "Slovak: 24-hour, DD. MM. YYYY",
       "TIME_LOCALE_UK_UA": "Ukrainian: 24-hour, DD.MM.YYYY",
+      "TIME_LOCALE_RO_RO": "Romanian: 24-hour, DD.MM.YYYY",
+      "TIME_LOCALE_RO_MD": "Romanian (Moldova): 24-hour, DD.MM.YYYY",
       "TITLE": "Localization",
       "TR": "Türkçe",
       "UK": "Українська",
@@ -2054,6 +2125,7 @@
       "COUNTDOWN_DURATION": "Show banner X before the actual reminder",
       "DEFAULT_TASK_REMIND_OPTION": "Default remind option selected when creating tasks",
       "DISABLE_REMINDERS": "Disable all reminders",
+      "HELP": "<p><strong>Important:</strong> Reminders use <strong>local notifications</strong>, not push notifications. This means the app needs to have been opened at least once on your device for reminders to be scheduled. Reminders set on another device will only appear after the app syncs on the target device.</p><p>On <strong>iOS</strong>, make sure notifications are enabled for Super Productivity in your device settings under 'Settings' > 'Notifications'.</p>",
       "IS_COUNTDOWN_BANNER_ENABLED": "Show countdown banner before reminders are due",
       "IS_FOCUS_WINDOW": "Focus application window when reminder is triggered",
       "TITLE": "Reminders",
@@ -2117,7 +2189,6 @@
       "L_IS_TRACKING_REMINDER_FOCUS_WINDOW": "Focus app window when reminder is active (desktop only)",
       "L_IS_TRACKING_REMINDER_NOTIFY": "Notify when time tracking reminder is shown",
       "L_IS_TRACKING_REMINDER_SHOW_ON_MOBILE": "Show tracking reminder on mobile app",
-      "L_TRACKING_INTERVAL": "Time tracking interval (EXPERIMENTAL)",
       "L_TRACKING_REMINDER_MIN_TIME": "Time to wait before showing tracking reminder banner",
       "TITLE": "Time Tracking"
     }
@@ -2178,7 +2249,6 @@
     "DBX_GEN_TOKEN": "Dropbox: Generate token...",
     "DBX_META": "Dropbox: Get file meta...",
     "DBX_UPLOAD": "Dropbox: Upload file...",
-    "GITHUB_LOAD_ISSUE": "GitHub: Load issue data...",
     "JIRA_LOAD_ISSUE": "Jira: Load issue data...",
     "SYNC": "Syncing data...",
     "UNKNOWN": "Loading remote data",
@@ -2249,8 +2319,8 @@
   "PDS": {
     "ADD_TASKS_FROM_TODAY": "Add tasks from today",
     "ARCHIVED_TASKS": {
-      "PLURAL": "{{count}} completed parent tasks have been archived",
-      "SINGULAR": "{{count}} completed parent task has been archived"
+      "ONE": "{{count}} completed parent task has been archived",
+      "OTHER": "{{count}} completed parent tasks have been archived"
     },
     "BREAK_LABEL": "Breaks (nr / time)",
     "CELEBRATE": "Take a moment to <i>celebrate!</i>",
@@ -2301,6 +2371,7 @@
     "CODE_TOO_LARGE": "Plugin code is too large (max {{maxSize}}MB)",
     "CONFIGURATION": "Configuration",
     "CONFIGURE": "Configure",
+    "CONFIRM_DISABLE_WITH_ISSUE_PROVIDERS": "This plugin provides issue integration that is currently in use ({{count}} issue provider(s)). Disabling it will temporarily break issue syncing for those providers until the plugin is re-enabled. Are you sure you want to disable \"{{name}}\"?",
     "CONFIRM_REMOVE": "Are you sure you want to remove the plugin \"{{name}}\"?",
     "ELECTRON_API_NOT_AVAILABLE": "Electron API is not available",
     "ERROR": "Error",

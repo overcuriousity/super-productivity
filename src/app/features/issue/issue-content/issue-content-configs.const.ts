@@ -1,4 +1,4 @@
-import { IssueProviderKey } from '../issue.model';
+import { BuiltInIssueProviderKey } from '../issue.model';
 import {
   IssueFieldType,
   IssueFieldConfig,
@@ -6,7 +6,6 @@ import {
   IssueContentConfig,
 } from './issue-content.model';
 import { JIRA_ISSUE_CONTENT_CONFIG } from '../providers/jira/jira-issue-content.const';
-import { GITHUB_ISSUE_CONTENT_CONFIG } from '../providers/github/github-issue-content.const';
 import { GITLAB_ISSUE_CONTENT_CONFIG } from '../providers/gitlab/gitlab-issue-content.const';
 import { CALDAV_ISSUE_CONTENT_CONFIG } from '../providers/caldav/caldav-issue-content.const';
 import { GITEA_ISSUE_CONTENT_CONFIG } from '../providers/gitea/gitea-issue-content.const';
@@ -16,12 +15,15 @@ import { TRELLO_ISSUE_CONTENT_CONFIG } from '../providers/trello/trello-issue-co
 import { LINEAR_ISSUE_CONTENT_CONFIG } from '../providers/linear/linear-issue-content.const';
 import { CLICKUP_ISSUE_CONTENT_CONFIG } from '../providers/clickup/clickup-issue-content.const';
 import { AZURE_DEVOPS_ISSUE_CONTENT_CONFIG } from '../providers/azure-devops/azure-devops-issue/azure-devops-issue-content.const';
+import { NEXTCLOUD_DECK_ISSUE_CONTENT_CONFIG } from '../providers/nextcloud-deck/nextcloud-deck-issue-content.const';
 
 // Re-export types for backwards compatibility
 export { IssueFieldType, IssueFieldConfig, IssueCommentConfig, IssueContentConfig };
 
-export const ISSUE_CONTENT_CONFIGS: Record<IssueProviderKey, IssueContentConfig<any>> = {
-  GITHUB: GITHUB_ISSUE_CONTENT_CONFIG,
+export const ISSUE_CONTENT_CONFIGS: Record<
+  BuiltInIssueProviderKey,
+  IssueContentConfig<any>
+> = {
   GITLAB: GITLAB_ISSUE_CONTENT_CONFIG,
   JIRA: JIRA_ISSUE_CONTENT_CONFIG,
   CALDAV: CALDAV_ISSUE_CONTENT_CONFIG,
@@ -32,6 +34,7 @@ export const ISSUE_CONTENT_CONFIGS: Record<IssueProviderKey, IssueContentConfig<
   LINEAR: LINEAR_ISSUE_CONTENT_CONFIG,
   CLICKUP: CLICKUP_ISSUE_CONTENT_CONFIG,
   AZURE_DEVOPS: AZURE_DEVOPS_ISSUE_CONTENT_CONFIG,
+  NEXTCLOUD_DECK: NEXTCLOUD_DECK_ISSUE_CONTENT_CONFIG,
   ICAL: {
     issueType: 'ICAL',
     fields: [],

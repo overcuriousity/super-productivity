@@ -41,6 +41,7 @@ import { IssueService } from '../../../issue/issue.service';
 import { TaskAttachmentService } from '../../task-attachment/task-attachment.service';
 import { SnackService } from '../../../../core/snack/snack.service';
 import { ProjectService } from '../../../project/project.service';
+import { _MISSING_PROJECT_ } from '../../../project/project.const';
 import { WorkContextService } from '../../../work-context/work-context.service';
 import { GlobalConfigService } from '../../../config/global-config.service';
 import { KeyboardConfig } from '../../../config/keyboard-config.model';
@@ -269,7 +270,6 @@ export class TaskContextMenuInnerComponent implements AfterViewInit {
 
   goToFocusMode(): void {
     this._taskService.setCurrentId(this.task.id);
-    this._taskService.setSelectedId(this.task.id);
     this._store.dispatch(showFocusOverlay());
   }
 
@@ -531,7 +531,7 @@ export class TaskContextMenuInnerComponent implements AfterViewInit {
                     okTxt: T.F.TASK_REPEAT.D_CONFIRM_MOVE_TO_PROJECT.OK,
                     message: T.F.TASK_REPEAT.D_CONFIRM_MOVE_TO_PROJECT.MSG,
                     translateParams: {
-                      projectName: targetProject.title,
+                      projectName: targetProject?.title ?? _MISSING_PROJECT_,
                       tasksNr:
                         nonArchiveInstancesWithSubTasks.length + archiveInstances.length,
                     },

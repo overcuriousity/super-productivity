@@ -30,7 +30,7 @@ jobs:
     steps:
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
-          node-version: 20
+          node-version: 22
       - name: Check out Git repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
@@ -49,9 +49,9 @@ jobs:
         id: npm-cache # use this to check for `cache-hit` ==> if: steps.npm-cache.outputs.cache-hit != 'true'
         with:
           path: ${{ steps.npm-cache-dir.outputs.dir }}
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node22-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-
+            ${{ runner.os }}-node22-
 
       - name: Install npm Packages
         #  if: steps.npm-cache.outputs.cache-hit != 'true'
@@ -83,7 +83,7 @@ jobs:
 
       - name: 'Upload E2E results on failure'
         if: ${{ failure() }}
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: e2eResults
           path: .tmp/e2e-test-results/**/*.*
@@ -111,7 +111,7 @@ jobs:
         with:
           max_attempts: 2
           timeout_minutes: 11
-          command: snapcraft push .tmp/app-builds/sp.snap --release edge
+          command: snapcraft upload .tmp/app-builds/sp.snap --release edge
       #      - run: snapcraft push .tmp/app-builds/sp.snap --release candidate
       #        if: startsWith(github.ref, 'refs/tags/v')
   #      - run: snapcraft promote superproductivity --from-channel latest/edge --to-channel latest/candidate --yes
@@ -128,7 +128,7 @@ jobs:
     steps:
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
-          node-version: 20
+          node-version: 22
       - name: Echo is Release
         run: echo "IS_RELEASE $IS_RELEASE, ${{ startsWith(github.ref, 'refs/tags/v') }}"
         env:
@@ -152,9 +152,9 @@ jobs:
         id: npm-cache # use this to check for `cache-hit` ==> if: steps.npm-cache.outputs.cache-hit != 'true'
         with:
           path: ${{ steps.npm-cache-dir.outputs.dir }}
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node22-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-
+            ${{ runner.os }}-node22-
 
       - name: Workaround for nx issue and dmg licence issue
         run: npm install @nx/nx-darwin-arm64 dmg-license
@@ -227,7 +227,7 @@ jobs:
     steps:
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
-          node-version: 20
+          node-version: 22
       # required because setting via env.TZ does not work on windows
       - name: Set timezone to Europe Standard Time
         uses: szenius/set-timezone@1f9716b0f7120e344f0c62bb7b1ee98819aefd42 # v2.0
@@ -252,9 +252,9 @@ jobs:
         id: npm-cache # use this to check for `cache-hit` ==> if: steps.npm-cache.outputs.cache-hit != 'true'
         with:
           path: ${{ steps.npm-cache-dir.outputs.dir }}
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node22-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-
+            ${{ runner.os }}-node22-
 
       - name: Workaround for nx issue
         run: npm install @nx/nx-win32-x64-msvc
@@ -306,7 +306,7 @@ jobs:
       - name: Upload unsigned executables for SignPath
         id: upload-unsigned
         continue-on-error: true
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: unsigned-windows-executables
           path: .tmp/app-builds/*.exe
@@ -322,7 +322,7 @@ jobs:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
           organization-id: ${{ secrets.SIGNPATH_ORGANIZATION_ID }}
           project-slug: super-productivity
-          signing-policy-slug: 'test-signing'
+          signing-policy-slug: 'release-signing'
           artifact-configuration-slug: 'github-zip-pe'
           github-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}
           output-artifact-directory: '.tmp/app-builds-signed/'
@@ -338,10 +338,27 @@ jobs:
             Write-Error "No signed executables found in SignPath output directory"
             exit 1
           }
+          # Build a map of original filenames for matching
+          # SignPath may replace spaces with dots in filenames, so we normalize
+          # spaces, dots, and hyphens to find the corresponding original file
+          $originals = Get-ChildItem -Path .tmp/app-builds -Filter *.exe
           $signed | ForEach-Object {
-            Move-Item -Force $_.FullName .tmp/app-builds/
+            $signedName = $_.Name
+            $normalizedSigned = $signedName -replace '[.\-\s]', ''
+            $match = $originals | Where-Object { ($_.Name -replace '[.\-\s]', '') -eq $normalizedSigned }
+            if ($match -is [array]) {
+              Write-Error "Ambiguous match for $signedName — matched multiple originals: $($match.Name -join ', ')"
+              exit 1
+            }
+            if ($match) {
+              Write-Host "Replacing $($match.Name) with signed version (was: $signedName)"
+              Move-Item -Force $_.FullName $match.FullName
+            } else {
+              Write-Error "No matching original found for signed file: $signedName"
+              exit 1
+            }
           }
-          Write-Host "Signed executables:"
+          Write-Host "Final executables:"
           Get-ChildItem -Path .tmp/app-builds -Filter *.exe | Format-Table -AutoSize
 
       - name: Verify code signatures

@@ -213,6 +213,32 @@ const plugins = [
       return 'Built and copied to assets';
     },
   },
+  {
+    name: 'github-issue-provider',
+    path: 'github-issue-provider',
+    needsInstall: true,
+    copyToAssets: true,
+    buildCommand: async (pluginPath) => {
+      await execAsync(`cd ${pluginPath} && npm run build`);
+      const targetDir = path.join(
+        __dirname,
+        '../../../src/assets/bundled-plugins/github-issue-provider',
+      );
+      if (!fs.existsSync(targetDir)) {
+        fs.mkdirSync(targetDir, { recursive: true });
+      }
+      const distPath = path.join(pluginPath, 'dist');
+      if (fs.existsSync(distPath)) {
+        const files = fs.readdirSync(distPath);
+        for (const file of files) {
+          const src = path.join(distPath, file);
+          const dest = path.join(targetDir, file);
+          copyRecursive(src, dest);
+        }
+      }
+      return 'Built and copied to assets';
+    },
+  },
 ];
 
 async function buildPlugin(plugin) {
@@ -259,7 +285,13 @@ async function buildPlugin(plugin) {
     return { plugin: plugin.name, success: true, duration };
   } catch (error) {
     const duration = ((Date.now() - startTime) / 1000).toFixed(1);
-    log(`❌ ${plugin.name} - Build failed: ${error.message} (${duration}s)`, colors.red);
+    log(`❌ ${plugin.name} - Build failed (${duration}s)`, colors.red);
+    if (error.stdout) {
+      log(`  stdout: ${error.stdout}`, colors.red);
+    }
+    if (error.stderr) {
+      log(`  stderr: ${error.stderr}`, colors.red);
+    }
 
     return { plugin: plugin.name, success: false, error: error.message, duration };
   }

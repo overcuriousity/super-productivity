@@ -131,6 +131,11 @@ export class FocusModeMainComponent {
   mainState = this.focusModeService.mainState;
   currentTask = toSignal(this.taskService.currentTask$);
 
+  // Quantize progress to 0.1% to reduce SVG repaints (~33% fewer updates)
+  quantizedProgress = computed(
+    () => Math.round((this.focusModeService.progress() || 0) * 10) / 10,
+  );
+
   readonly parentTask = toSignal(
     this.taskService.currentTask$.pipe(
       switchMap((t) =>
@@ -366,7 +371,11 @@ export class FocusModeMainComponent {
     if (shouldSkipPreparation) {
       const duration =
         this.mode() === FocusModeMode.Flowtime ? 0 : this.displayDuration();
-      this._store.dispatch(startFocusSession({ duration }));
+      this._store.dispatch(
+        startFocusSession({
+          duration,
+        }),
+      );
       return;
     }
 
@@ -376,7 +385,11 @@ export class FocusModeMainComponent {
   onCountdownComplete(): void {
     // For Flowtime mode, duration must be 0 to count indefinitely
     const duration = this.mode() === FocusModeMode.Flowtime ? 0 : this.displayDuration();
-    this._store.dispatch(startFocusSession({ duration }));
+    this._store.dispatch(
+      startFocusSession({
+        duration,
+      }),
+    );
     // Main UI state transitions are now handled by the store
   }
 

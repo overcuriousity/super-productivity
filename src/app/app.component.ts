@@ -11,10 +11,9 @@ import {
   inject,
   NgZone,
   OnDestroy,
-  signal,
   ViewChild,
 } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { ShortcutService } from './core-ui/shortcut/shortcut.service';
 import { GlobalConfigService } from './features/config/global-config.service';
 import { LayoutService } from './core-ui/layout/layout.service';
@@ -22,7 +21,7 @@ import { SnackService } from './core/snack/snack.service';
 import { IS_ELECTRON } from './app.constants';
 import { expandAnimation } from './ui/animations/expand.ani';
 import { warpRouteAnimation } from './ui/animations/warp-route';
-import { combineLatest, merge, Observable, Subscription, timer } from 'rxjs';
+import { combineLatest, Observable, Subscription } from 'rxjs';
 import { fadeAnimation } from './ui/animations/fade.ani';
 import { BannerService } from './core/banner/banner.service';
 import { LS } from './core/persistence/storage-keys.const';
@@ -34,8 +33,8 @@ import { WorkContextService } from './features/work-context/work-context.service
 import { ImexViewService } from './imex/imex-meta/imex-view.service';
 import { SyncTriggerService } from './imex/sync/sync-trigger.service';
 import { ActivatedRoute, RouterOutlet } from '@angular/router';
-import { filter, map, take } from 'rxjs/operators';
-import { isOnline$ } from './util/is-online';
+import { filter, map, switchMap, take } from 'rxjs/operators';
+
 import { IS_MOBILE } from './util/is-mobile';
 import { warpAnimation, warpInAnimation } from './ui/animations/warp.ani';
 import { AddTaskBarComponent } from './features/tasks/add-task-bar/add-task-bar.component';
@@ -145,7 +144,6 @@ export class AppComponent implements OnDestroy, AfterViewInit {
 
   productivityTipTitle: string = productivityTip?.[0] || '';
   productivityTipText: string = productivityTip?.[1] || '';
-  showSkipSyncButton = signal(false);
 
   @ViewChild('routeWrapper', { read: ElementRef }) routeWrapper?: ElementRef<HTMLElement>;
 
@@ -221,21 +219,6 @@ export class AppComponent implements OnDestroy, AfterViewInit {
         void this._noteStartupBannerService.showLastNoteIfNeeded();
       });
 
-    // Show skip sync button immediately if offline, otherwise after 3 seconds
-    merge(
-      // Immediate trigger if offline
-      isOnline$.pipe(
-        filter((isOnline) => !isOnline),
-        take(1),
-      ),
-      // Fallback after 3 seconds regardless
-      timer(3000),
-    )
-      .pipe(take(1), takeUntilDestroyed())
-      .subscribe(() => {
-        this.showSkipSyncButton.set(true);
-      });
-
     // ! For keyboard shortcuts to work correctly with any layouts (QWERTZ/AZERTY/etc) - user's keyboard layout must be presaved
     // Connect the service to the utility functions
     setKeyboardLayoutService(this._keyboardLayoutService);
@@ -245,10 +228,6 @@ export class AppComponent implements OnDestroy, AfterViewInit {
     } else {
       setTimeout(() => this._keyboardLayoutService.saveUserLayout(), 0);
     }
-  }
-
-  skipInitialSync(): void {
-    this.syncTriggerService.setInitialSyncDone(true);
   }
 
   @HostListener('document:paste', ['$event']) onPaste(ev: ClipboardEvent): void {
@@ -362,46 +341,50 @@ export class AppComponent implements OnDestroy, AfterViewInit {
       maxWidth: '95vw',
     });
 
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        // Get current work context
-        this.workContextService.activeWorkContext$
-          .pipe(take(1))
-          .subscribe((activeContext) => {
-            if (!activeContext) {
-              this._snackService.open({
-                type: 'ERROR',
-                msg: 'No active work context',
-              });
-              return;
-            }
-
-            // Extract the URL from the result object
-            const backgroundUrl = result.url || result;
-            const isDarkMode = this._globalThemeService.isDarkTheme();
-            const contextKey: keyof WorkContextThemeCfg = isDarkMode
-              ? 'backgroundImageDark'
-              : 'backgroundImageLight';
-
-            // Update the theme based on context type
-            if (activeContext.type === 'PROJECT') {
-              this._projectService.update(activeContext.id, {
-                theme: {
-                  ...(activeContext.theme || {}),
-                  [contextKey]: backgroundUrl,
-                },
-              });
-            } else if (activeContext.type === 'TAG') {
-              this._tagService.updateTag(activeContext.id, {
-                theme: {
-                  ...(activeContext.theme || {}),
-                  [contextKey]: backgroundUrl,
-                },
-              });
-            }
+    dialogRef
+      .afterClosed()
+      .pipe(
+        filter((result) => !!result),
+        switchMap((result) =>
+          this.workContextService.activeWorkContext$.pipe(
+            take(1),
+            map((activeContext) => ({ result, activeContext })),
+          ),
+        ),
+      )
+      .subscribe(({ result, activeContext }) => {
+        if (!activeContext) {
+          this._snackService.open({
+            type: 'ERROR',
+            msg: 'No active work context',
           });
-      }
-    });
+          return;
+        }
+
+        // Extract the URL from the result object
+        const backgroundUrl = result.url || result;
+        const isDarkMode = this._globalThemeService.isDarkTheme();
+        const contextKey: keyof WorkContextThemeCfg = isDarkMode
+          ? 'backgroundImageDark'
+          : 'backgroundImageLight';
+
+        // Update the theme based on context type
+        if (activeContext.type === 'PROJECT') {
+          this._projectService.update(activeContext.id, {
+            theme: {
+              ...(activeContext.theme || {}),
+              [contextKey]: backgroundUrl,
+            },
+          });
+        } else if (activeContext.type === 'TAG') {
+          this._tagService.updateTag(activeContext.id, {
+            theme: {
+              ...(activeContext.theme || {}),
+              [contextKey]: backgroundUrl,
+            },
+          });
+        }
+      });
   }
 
   ngAfterViewInit(): void {

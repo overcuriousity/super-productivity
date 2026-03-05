@@ -121,7 +121,7 @@ export class BackupService {
             'errors' in validationResult.typiaResult
               ? validationResult.typiaResult.errors
               : [];
-          validatedData = dataRepair(backupData, errors);
+          validatedData = dataRepair(backupData, errors).data;
         } else {
           throw new Error('Data validation failed and repair not possible');
         }
@@ -195,6 +195,7 @@ export class BackupService {
       vectorClock: newClock,
       timestamp: Date.now(),
       schemaVersion: CURRENT_SCHEMA_VERSION,
+      syncImportReason: 'BACKUP_RESTORE',
     };
 
     await this._opLogStore.append(op, 'local');
