@@ -2,6 +2,7 @@ import {
   APP_INITIALIZER,
   enableProdMode,
   ErrorHandler,
+  Injector,
   importProvidersFrom,
   provideZonelessChangeDetection,
   SecurityContext,
@@ -47,7 +48,8 @@ import { StoreModule } from '@ngrx/store';
 import { META_REDUCERS } from './app/root-store/meta/meta-reducer-registry';
 import { setOperationCaptureService } from './app/root-store/meta/task-shared-meta-reducers';
 import { OperationCaptureService } from './app/op-log/capture/operation-capture.service';
-import { EncryptionPasswordDialogOpenerInitService } from './app/imex/sync/encryption-password-dialog-opener-init.service';
+import { EncryptionPasswordDialogOpenerService } from './app/imex/sync/encryption-password-dialog-opener.service';
+import { DataInitService } from './app/core/data-init/data-init.service';
 import { EffectsModule } from '@ngrx/effects';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -62,10 +64,10 @@ import { AppComponent } from './app/app.component';
 import { ShortTimeHtmlPipe } from './app/ui/pipes/short-time-html.pipe';
 import { ShortTimePipe } from './app/ui/pipes/short-time.pipe';
 import { BackgroundTask } from '@capawesome/capacitor-background-task';
-import { promiseTimeout } from './app/util/promise-timeout';
 import { PLUGIN_INITIALIZER_PROVIDER } from './app/plugins/plugin-initializer';
 import { initializeMatMenuTouchFix } from './app/features/tasks/task-context-menu/mat-menu-touch-monkey-patch';
 import { Log } from './app/core/log';
+import { OperationWriteFlushService } from './app/op-log/sync/operation-write-flush.service';
 import { GlobalConfigService } from './app/features/config/global-config.service';
 import { LocaleDatePipe } from './app/ui/pipes/locale-date.pipe';
 import { DateTimeFormatService } from './app/core/date-time-format/date-time-format.service';
@@ -76,6 +78,10 @@ if (environment.production || environment.stage) {
 }
 
 // Window.ea declaration is in src/app/core/window-ea.d.ts
+
+// Module-level injector for use in Capacitor lifecycle handlers.
+// Set after Angular bootstrap completes.
+let appInjector: Injector | null = null;
 
 bootstrapApplication(AppComponent, {
   providers: [
@@ -215,21 +221,33 @@ bootstrapApplication(AppComponent, {
       deps: [OperationCaptureService],
       multi: true,
     },
+    // Ensure DataInitService is instantiated at bootstrap.
+    // Its constructor triggers reInit() → hydrateStore() → loadAllData into NgRx.
+    {
+      provide: APP_INITIALIZER,
+      useFactory: (_dataInit: DataInitService) => {
+        return () => {};
+      },
+      deps: [DataInitService],
+      multi: true,
+    },
     // Initialize encryption password dialog opener for static form config functions
     {
       provide: APP_INITIALIZER,
-      useFactory: (_initService: EncryptionPasswordDialogOpenerInitService) => {
-        // Service constructor initializes the module-level reference
+      useFactory: (_opener: EncryptionPasswordDialogOpenerService) => {
+        // Service constructor self-registers the module-level reference
         return () => {};
       },
-      deps: [EncryptionPasswordDialogOpenerInitService],
+      deps: [EncryptionPasswordDialogOpenerService],
       multi: true,
     },
     // Note: ImmediateUploadService now initializes itself in constructor
     // after DataInitStateService.isAllDataLoadedInitially$ fires to avoid
     // race condition where upload attempts happen before sync config is loaded
   ],
-}).then(() => {
+}).then((appRef) => {
+  appInjector = appRef.injector;
+
   // Initialize touch fix for Material menus
   initializeMatMenuTouchFix();
 
@@ -309,35 +327,50 @@ if (IS_ANDROID_WEB_VIEW) {
   });
 }
 
-// Android: Handle app state changes with background task for sync completion
+// Flush pending operations from in-memory FIFO queue to IndexedDB.
+// Called when the app goes to background to prevent data loss if the OS kills the app.
+const flushPendingOperations = async (platform: string): Promise<void> => {
+  if (!appInjector) {
+    Log.log(`${platform} background: app not yet bootstrapped, skipping flush`);
+    return;
+  }
+  const flushService = appInjector.get(OperationWriteFlushService);
+  await flushService.flushPendingWrites();
+  Log.log(`${platform} background: operation flush complete`);
+};
+
+// Android: Flush pending operations to IndexedDB when app goes to background.
+// Without this, operations in the in-memory FIFO queue are lost if the OS kills the app.
 if (IS_ANDROID_WEB_VIEW) {
   CapacitorApp.addListener('appStateChange', async ({ isActive }) => {
     if (isActive) {
       return;
     }
-    // The app state has been changed to inactive.
-    // Start the background task by calling `beforeExit`.
     const taskId = await BackgroundTask.beforeExit(async () => {
-      // Run your code...
-      // Finish the background task as soon as everything is done.
-      Log.log('Time window for completing sync started');
-      await promiseTimeout(20000);
-      Log.log('Time window for completing sync ended. Closing app!');
+      try {
+        await flushPendingOperations('Android');
+      } catch (e) {
+        Log.err('Android background: operation flush failed', e);
+      }
       BackgroundTask.finish({ taskId });
     });
   });
 }
 
-// iOS: Handle app state changes (limited background time)
+// iOS: Flush pending operations to IndexedDB when app goes to background.
 if (IS_IOS_NATIVE) {
   CapacitorApp.addListener('appStateChange', async ({ isActive }) => {
     if (isActive) {
-      Log.log('iOS app became active');
       return;
     }
-    // iOS has limited background execution time (~30 seconds)
-    // Log state change but don't attempt long-running tasks
-    Log.log('iOS app going to background');
+    const taskId = await BackgroundTask.beforeExit(async () => {
+      try {
+        await flushPendingOperations('iOS');
+      } catch (e) {
+        Log.err('iOS background: operation flush failed', e);
+      }
+      BackgroundTask.finish({ taskId });
+    });
   });
 
   // Handle app URL open (for OAuth callbacks, deep links, etc.)

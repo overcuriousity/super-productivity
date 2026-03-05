@@ -1,0 +1,197 @@
+import { TestBed } from '@angular/core/testing';
+import { SuperSyncEncryptionToggleService } from './supersync-encryption-toggle.service';
+import { SnapshotUploadService } from './snapshot-upload.service';
+import { SyncProviderManager } from '../../op-log/sync-providers/provider-manager.service';
+import { SyncProviderId } from '../../op-log/sync-providers/provider.const';
+import {
+  OperationSyncCapable,
+  SyncProviderServiceInterface,
+} from '../../op-log/sync-providers/provider.interface';
+import { SuperSyncPrivateCfg } from '../../op-log/sync-providers/super-sync/super-sync.model';
+
+describe('SuperSyncEncryptionToggleService', () => {
+  let service: SuperSyncEncryptionToggleService;
+  let mockSnapshotUploadService: jasmine.SpyObj<SnapshotUploadService>;
+  let mockProviderManager: jasmine.SpyObj<SyncProviderManager>;
+  let mockSyncProvider: jasmine.SpyObj<
+    SyncProviderServiceInterface<SyncProviderId> & OperationSyncCapable
+  >;
+
+  const mockExistingCfg: SuperSyncPrivateCfg = {
+    baseUrl: 'https://test.example.com',
+    accessToken: 'test-token',
+    isEncryptionEnabled: false,
+    encryptKey: undefined,
+  };
+
+  beforeEach(() => {
+    mockSyncProvider = jasmine.createSpyObj('SyncProvider', [
+      'deleteAllData',
+      'setPrivateCfg',
+    ]);
+    mockSyncProvider.id = SyncProviderId.SuperSync;
+    mockSyncProvider.deleteAllData.and.resolveTo({ success: true });
+    mockSyncProvider.setPrivateCfg.and.resolveTo();
+    mockSyncProvider.privateCfg = {
+      load: jasmine.createSpy('load').and.resolveTo(mockExistingCfg),
+    } as any;
+    (mockSyncProvider as any).supportsOperationSync = true;
+
+    mockProviderManager = jasmine.createSpyObj('SyncProviderManager', [
+      'getActiveProvider',
+      'setProviderConfig',
+    ]);
+    mockProviderManager.getActiveProvider.and.returnValue(mockSyncProvider as any);
+    mockProviderManager.setProviderConfig.and.resolveTo();
+
+    mockSnapshotUploadService = jasmine.createSpyObj('SnapshotUploadService', [
+      'deleteAndReuploadWithNewEncryption',
+    ]);
+    mockSnapshotUploadService.deleteAndReuploadWithNewEncryption.and.resolveTo({
+      accepted: true,
+      serverSeq: 42,
+      existingCfg: mockExistingCfg,
+    });
+
+    TestBed.configureTestingModule({
+      providers: [
+        SuperSyncEncryptionToggleService,
+        { provide: SnapshotUploadService, useValue: mockSnapshotUploadService },
+        { provide: SyncProviderManager, useValue: mockProviderManager },
+      ],
+    });
+
+    service = TestBed.inject(SuperSyncEncryptionToggleService);
+  });
+
+  describe('enableEncryption', () => {
+    it('should throw when encryptKey is empty', async () => {
+      await expectAsync(service.enableEncryption('')).toBeRejectedWithError(
+        'Encryption key is required',
+      );
+    });
+
+    it('should skip when encryption is already enabled', async () => {
+      (mockSyncProvider.privateCfg.load as jasmine.Spy).and.resolveTo({
+        ...mockExistingCfg,
+        isEncryptionEnabled: true,
+        encryptKey: 'existing-key',
+      });
+
+      await service.enableEncryption('new-key');
+
+      expect(
+        mockSnapshotUploadService.deleteAndReuploadWithNewEncryption,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('should delegate to deleteAndReuploadWithNewEncryption with correct params', async () => {
+      await service.enableEncryption('my-secret-key');
+
+      expect(
+        mockSnapshotUploadService.deleteAndReuploadWithNewEncryption,
+      ).toHaveBeenCalledWith({
+        encryptKey: 'my-secret-key',
+        isEncryptionEnabled: true,
+        logPrefix: 'SuperSyncEncryptionToggleService',
+      });
+    });
+
+    it('should revert config on failure while preserving auth credentials', async () => {
+      mockSnapshotUploadService.deleteAndReuploadWithNewEncryption.and.rejectWith(
+        new Error('Upload failed'),
+      );
+
+      await expectAsync(service.enableEncryption('my-secret-key')).toBeRejectedWithError(
+        /CRITICAL/,
+      );
+
+      // Should revert config to disable encryption while keeping baseUrl/accessToken
+      expect(mockProviderManager.setProviderConfig).toHaveBeenCalledWith(
+        SyncProviderId.SuperSync,
+        jasmine.objectContaining({
+          baseUrl: 'https://test.example.com',
+          accessToken: 'test-token',
+          encryptKey: undefined,
+          isEncryptionEnabled: false,
+        }),
+      );
+    });
+
+    it('should throw with CRITICAL message on failure', async () => {
+      mockSnapshotUploadService.deleteAndReuploadWithNewEncryption.and.rejectWith(
+        new Error('Server rejected'),
+      );
+
+      await expectAsync(service.enableEncryption('my-secret-key')).toBeRejectedWithError(
+        /CRITICAL: Failed to upload encrypted snapshot after deleting server data/,
+      );
+    });
+
+    it('should include original error message in CRITICAL error', async () => {
+      mockSnapshotUploadService.deleteAndReuploadWithNewEncryption.and.rejectWith(
+        new Error('Network error'),
+      );
+
+      await expectAsync(service.enableEncryption('my-secret-key')).toBeRejectedWithError(
+        /CRITICAL.*Network error/,
+      );
+    });
+  });
+
+  describe('disableEncryption', () => {
+    it('should delegate to deleteAndReuploadWithNewEncryption with correct params', async () => {
+      await service.disableEncryption();
+
+      expect(
+        mockSnapshotUploadService.deleteAndReuploadWithNewEncryption,
+      ).toHaveBeenCalledWith({
+        encryptKey: undefined,
+        isEncryptionEnabled: false,
+        logPrefix: 'SuperSyncEncryptionToggleService',
+      });
+    });
+
+    it('should revert config to re-enable encryption on failure', async () => {
+      // After shared method runs, config is already set to isEncryptionEnabled: false
+      (mockSyncProvider.privateCfg.load as jasmine.Spy).and.resolveTo({
+        ...mockExistingCfg,
+        isEncryptionEnabled: false,
+      });
+
+      mockSnapshotUploadService.deleteAndReuploadWithNewEncryption.and.rejectWith(
+        new Error('Upload failed'),
+      );
+
+      await expectAsync(service.disableEncryption()).toBeRejectedWithError(/CRITICAL/);
+
+      // Should revert config to re-enable encryption
+      expect(mockProviderManager.setProviderConfig).toHaveBeenCalledWith(
+        SyncProviderId.SuperSync,
+        jasmine.objectContaining({
+          isEncryptionEnabled: true,
+        }),
+      );
+    });
+
+    it('should throw with CRITICAL message on failure', async () => {
+      mockSnapshotUploadService.deleteAndReuploadWithNewEncryption.and.rejectWith(
+        new Error('Server rejected'),
+      );
+
+      await expectAsync(service.disableEncryption()).toBeRejectedWithError(
+        /CRITICAL: Failed to upload unencrypted snapshot after deleting server data/,
+      );
+    });
+
+    it('should include original error message in CRITICAL error', async () => {
+      mockSnapshotUploadService.deleteAndReuploadWithNewEncryption.and.rejectWith(
+        new Error('Network error'),
+      );
+
+      await expectAsync(service.disableEncryption()).toBeRejectedWithError(
+        /CRITICAL.*Network error/,
+      );
+    });
+  });
+});

@@ -65,7 +65,9 @@ import { IS_ANDROID_WEB_VIEW } from '../util/is-android-web-view';
 import { AndroidEffects } from '../features/android/store/android.effects';
 import { AndroidFocusModeEffects } from '../features/android/store/android-focus-mode.effects';
 import { AndroidForegroundTrackingEffects } from '../features/android/store/android-foreground-tracking.effects';
-import { CaldavIssueEffects } from '../features/issue/providers/caldav/caldav-issue.effects';
+import { MobileNotificationEffects } from '../features/mobile/store/mobile-notification.effects';
+import { IS_NATIVE_PLATFORM } from '../util/is-native-platform';
+import { NextcloudDeckIssueEffects } from '../features/issue/providers/nextcloud-deck/nextcloud-deck-issue.effects';
 import { CalendarIntegrationEffects } from '../features/calendar-integration/store/calendar-integration.effects';
 import { ElectronEffects } from '../core/electron/electron.effects';
 import { VoiceReminderEffects } from '../features/voice-reminder/store/voice-reminder.effects';
@@ -86,6 +88,7 @@ import { AppStateEffects } from './app-state/app-state.effects';
 import { appStateFeature } from './app-state/app-state.reducer';
 import { PluginHooksEffects } from '../plugins/plugin-hooks.effects';
 import { OperationLogEffects } from '../op-log/capture/operation-log.effects';
+import { IssueTwoWaySyncEffects } from '../features/issue/two-way-sync/issue-two-way-sync.effects';
 import {
   PLUGIN_USER_DATA_FEATURE_NAME,
   pluginUserDataReducer,
@@ -172,7 +175,11 @@ import {
         ? [AndroidEffects, AndroidFocusModeEffects, AndroidForegroundTrackingEffects]
         : []),
     ]),
-    EffectsModule.forFeature([CaldavIssueEffects]),
+    EffectsModule.forFeature([
+      ...(IS_NATIVE_PLATFORM ? [MobileNotificationEffects] : []),
+    ]),
+    EffectsModule.forFeature([IssueTwoWaySyncEffects]),
+    EffectsModule.forFeature([NextcloudDeckIssueEffects]),
     EffectsModule.forFeature([CalendarIntegrationEffects]),
     EffectsModule.forFeature([ElectronEffects]),
     EffectsModule.forFeature([VoiceReminderEffects]),

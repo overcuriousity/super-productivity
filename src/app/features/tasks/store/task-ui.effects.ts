@@ -31,8 +31,10 @@ import { playDoneSound } from '../util/play-done-sound';
 import { Task } from '../task.model';
 import { EMPTY } from 'rxjs';
 import { selectProjectById } from '../../project/store/project.selectors';
+import { Project } from '../../project/project.model';
 import { Router } from '@angular/router';
 import { NavigateToTaskService } from '../../../core-ui/navigate-to-task/navigate-to-task.service';
+import { LayoutService } from '../../../core-ui/layout/layout.service';
 import { skipWhileApplyingRemoteOps } from '../../../util/skip-during-sync.operator';
 
 @Injectable()
@@ -47,6 +49,7 @@ export class TaskUiEffects {
   private _globalConfigService = inject(GlobalConfigService);
   private _workContextService = inject(WorkContextService);
   private _navigateToTaskService = inject(NavigateToTaskService);
+  private _layoutService = inject(LayoutService);
 
   taskCreatedSnack$ = createEffect(
     () =>
@@ -59,7 +62,11 @@ export class TaskUiEffects {
               .select(selectProjectById, { id: task.projectId as string })
               .pipe(
                 first(),
-                map((project) => ({ project, task, activeContextTaskIds })),
+                map((project) => ({
+                  project: project ?? null,
+                  task,
+                  activeContextTaskIds,
+                })),
               );
           } else {
             return [{ project: null, task, activeContextTaskIds }];
@@ -83,6 +90,7 @@ export class TaskUiEffects {
             ico: 'add',
             actionStr: T.F.TASK.S.GO_TO_TASK,
             actionFn: () => {
+              this._layoutService.hideAddTaskBar();
               if (isTaskVisibleOnCurrentPage) {
                 this._taskService.setSelectedId(task.id);
               } else {
@@ -209,6 +217,7 @@ export class TaskUiEffects {
         switchMap(([{ targetProjectId, task }]) =>
           this._store$.select(selectProjectById, { id: targetProjectId }).pipe(
             first(),
+            filter((project): project is Project => !!project),
             map((project) => ({ project, task })),
           ),
         ),
@@ -222,6 +231,7 @@ export class TaskUiEffects {
             msg: T.F.TASK.S.MOVED_TO_PROJECT,
             ico: 'add',
             actionFn: () => {
+              this._layoutService.hideAddTaskBar();
               this._navigateToTaskService.navigate(task.id, false);
             },
             actionStr: T.F.TASK.S.GO_TO_TASK,
